@@ -2,6 +2,7 @@
 // self-referential structure
 struct Node {
    int data; // each listNode contains a character
+   char name[50];
    struct Node *nextPtr; // pointer to next node
    struct Node *pPtr;
 }; // end structure listNode
@@ -10,10 +11,15 @@ typedef struct Node LLnode; // synonym for struct listNode
 typedef LLnode *LLPtr; // synonym for ListNode*
 
 // prototypes
+#define MAX_DELETED 100 // Maximum number of deleted values
+
+int deletedValues[MAX_DELETED]; // Array to store deleted values
+int deletedCount = 0;
+
 
 int deletes( LLPtr *sPtr, int value );
 int isEmpty( LLPtr sPtr );
-void insert( LLPtr *sPtr, int value );
+void insert( LLPtr *sPtr, int value, char *name);
 void printList( LLPtr currentPtr );
 void instructions( void );
 void printListR(LLPtr currentPtr);
@@ -29,7 +35,7 @@ void instructions( void )
 } // end function instructions
 
 // insert a new value into the list in sorted order
-void insert( LLPtr *sPtr, int value )
+void insert( LLPtr *sPtr, int value, char *name)
 {
    LLPtr newPtr; // pointer to new node
    LLPtr previousPtr; // pointer to previous node in list
@@ -39,6 +45,7 @@ void insert( LLPtr *sPtr, int value )
 
    if ( newPtr != NULL ) { // is space available
       newPtr->data = value; // place value in node
+      strcpy(newPtr->name, name);
       newPtr->nextPtr = NULL; // node does not link to another node
       newPtr->pPtr = NULL;
        
@@ -72,15 +79,15 @@ void insert( LLPtr *sPtr, int value )
       } // end else
    } // end if
    else {
-      printf( "%d not inserted. No memory available.\n", value );
+      printf( "%d %s not inserted. No memory available.\n", value, name );
    } // end else
 } // end function insert
 
 // delete a list element
 int deletes( LLPtr *sPtr, int value )
 {
-   LLPtr previousPtr; // pointer to previous node in list
-   LLPtr currentPtr; // pointer to current node in list
+   LLPtr previousPtr = NULL; // pointer to previous node in list
+   LLPtr currentPtr = *sPtr; // pointer to current node in list
    LLPtr tempPtr; // temporary node pointer
 
    // delete first node
@@ -90,6 +97,10 @@ int deletes( LLPtr *sPtr, int value )
       if (*sPtr != NULL) {
          (*sPtr)->pPtr = NULL; 
      }
+     if (deletedCount < MAX_DELETED) {
+      deletedValues[deletedCount++] = tempPtr->data; // Add deleted value
+  }
+
       free( tempPtr ); // free the de-threaded node
       return value;
    } // end if
@@ -110,6 +121,9 @@ int deletes( LLPtr *sPtr, int value )
          if(currentPtr->nextPtr != NULL){
          currentPtr->nextPtr->pPtr=previousPtr;
          }
+         if (deletedCount < MAX_DELETED) {
+            deletedValues[deletedCount++] = tempPtr->data; // Add deleted value
+        }
          free( tempPtr );
          return value;
       } // end if
@@ -135,12 +149,12 @@ void printList( LLPtr currentPtr )
       puts( "The list is:" );
 
       // while not the end of the list
-      while ( currentPtr->nextPtr!= NULL ) {
-         printf( "%d --> ", currentPtr->data );
+      while ( currentPtr!= NULL ) {
+         printf( "%d %s -->", currentPtr->data, currentPtr->name );
          currentPtr = currentPtr->nextPtr;
       } // end while
 
-      printf( "%d --> NULL\n",currentPtr->data );
+      printf( "NULL\n");
        
 
      
@@ -155,19 +169,15 @@ void printListR(LLPtr currentPtr)
     }
     
 
-    while ( currentPtr->nextPtr!= NULL ) {
-      currentPtr = currentPtr->nextPtr;
-   }
-   while(currentPtr != NULL){
-      printf("%d", currentPtr->data);
-      if (currentPtr->pPtr != NULL) {
-          printf(" --> ");  
-      }
-      currentPtr = currentPtr->pPtr;
-   }
-
-   printf( " --> NULL\n");
+    printListR(currentPtr->nextPtr);
+    printf("%d %s", currentPtr->data, currentPtr->name);
+    if (currentPtr->pPtr != NULL) { 
+      printf(" -->");
+  } else {
+      printf(" -->NULL\n");
+  }
 
     
 }
+
 
